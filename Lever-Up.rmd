@@ -1,0 +1,448 @@
+---
+title: "Project: Lever-Up"
+author: "Art Tay"
+date: "12/25/2020"
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+fig_width: 6
+fig_height: 6
+---
+
+# Theory
+
+Theory: A portfolio that invests in the S&P 500 and Long-Term US treasuries is a good investment, and leverage turns good investments into great investments. Therefore, investing in a leveraged ETFs that track these two indices is a great investment. 
+
+# Methodolgy
+
+Testing Period: 2010-1-1 to 2020-12-23
+
+Testing Metrics: Quarterly Returns, Standard Deviation, Efficicency Frontiers, Cummulative Return, Sharpe Ratio
+
+Testing Units: 
+1. SPXL: Direxion Daily S&P 500 Bull 3x 
+2. TMF: Direxion Daily 20-Year Treasury Bull 3x
+3. SPY: S&P 500 ETF 
+4. VGLT: Vanguard Long-Term Treasury 
+
+```{r, include = F}
+#imports
+library(quantmod)
+library(tidyverse)
+library(car)
+library(corrplot)
+library(knitr)
+library(gtsummary)
+
+#Date Setup 
+
+start = as.Date("2010-1-1")
+end = as.Date("2020-12-23")
+```
+
+# Background 
+```{r, echo = F, message = F}
+#data pull 
+tickers = c("SPY", "SPXL", "VGLT", "TMF")
+
+background = data.frame()
+
+for(tick in tickers){
+  background = cbind(background, annualReturn(getSymbols(Symbols = tick, auto.assign = F, from = start, to = end)))
+}
+
+colnames(background) = tickers 
+
+#Return Plots 
+background_long = cbind(index(background), as.data.frame(background)) %>% gather(key = "Ticker", value = "Annual Returns", 2:5)
+background_returns = ggplot(data = background_long, aes(x = `index(background)`, y = `Annual Returns`, 
+                                                        col = Ticker)) + labs(x = "Time")
+
+background_returns + geom_line() + ggtitle("Fig. 1: Annual Return Comparison Plot") 
+
+#Boxplot 
+background_returns + geom_boxplot() + ggtitle("Fig. 2: Annual Return Variability") 
+
+#Cummlative Plot 
+background_cum = apply(background, 2, FUN = function(x){
+  cumprod(x + 1) 
+})
+background_cum = cbind(index(background), as.data.frame(background_cum)) %>% gather(key = "Ticker", value = "Cummulative Returns", 2:5)
+
+background_cum_plot = ggplot(data = background_cum, aes(x = `index(background)`, y = `Cummulative Returns`, col = Ticker))
+
+background_cum_plot + labs(x = "Time", y = "$") + geom_line() + ggtitle("Fig. 3: Value of $1 Investment")
+
+```
+
+```{r, echo = F}
+#Correlation Plot 
+corrplot(cor(background), method= "number", title = "Fig. 5: Correlation Plot", mar  = c(0,0,1,0))
+
+#Sharpe Ratios 
+means = apply(background, 2, FUN = mean)
+SDs = apply(background, 2, sd)
+sharpes = means / SDs
+
+sumStats = rbind(means, SDs, sharpes)
+kable(x = sumStats, caption = "Fig. 6: Summary Statistics")
+
+```
+
+
+# S&P 500
+
+1. How close are the daily adjusted returns to 3x? 
+```{r, echo = F}
+#Get SPY data
+SPY = getSymbols(Symbol = "SPY", auto.assign = F, from = start, to = end)
+
+#Calc Daily Returns 
+SPY_daily = dailyReturn(SPY)
+
+
+#Get SPXL data
+SPXL = getSymbols(Symbol = "SPXL", auto.assign = F, from = start, to = end)
+
+#Calc Daily Returns 
+SPXL_daily = dailyReturn(SPXL)
+
+
+#Scatterplot 
+Daily_Returns = cbind(SPY_daily, SPXL_daily)
+colnames(Daily_Returns) = c("SPY", "SPXL")
+Daily_Returns_Plot = ggplot(data = Daily_Returns, aes(SPY, SPXL))+geom_point()
+
+#Regression
+mod1 = lm(data = Daily_Returns, formula = SPXL ~ SPY)
+b1 = mod1$coefficients[1]
+b2 = mod1$coefficients[2]
+
+#Plot
+Daily_Returns_Plot + geom_abline(intercept = b1, slope = b2, col = "red") + ggtitle("Fig. 7: Comparison of Daily Returns")
+(smod1 = summary(mod1))
+
+```
+
+$$
+\begin{align} 
+H_0:\beta_2=3\\
+H_a:\beta_2\neq3\\
+t=\dfrac{\hat{\beta_2}-H_0}{SE(\hat{\beta_2})}
+\end{align}
+$$
+
+
+```{r, include = F}
+#t-test
+SE_b2 = smod1$coefficients[2,2]
+t = (b2 - 3)/SE_b2 
+df = smod1$df[2]
+p_value = 2 * pt(abs(t), df, lower.tail = F)
+
+p_intercept = smod1$coefficients[1,4]
+```
+
+According to the regression the intercept term is not significant (p=`r p_intercept`). Furthermore according to a t-test on $\beta_2$ the is not sufficient evidence to say that the coefficient differs from 3 at $\alpha = 1\%$(p=`r p_value`). It is worth noting that the p-value is significant at 5%. This means that SPXL give very close to 3x exposure, but most likely due to fees it is a little bit less (say 2.99x).  
+
+2. What is the relationship between their cummulative annual returns? 
+Note: 2020 is not a full year at the time of formulation 
+```{r, echo = F}
+#calc annual returns for SPY
+SPY_annual = annualReturn(SPY)
+
+#calc cummulative returns 
+SPY_annual$Cumulative = cumprod(SPY_annual$yearly.returns + 1) - 1
+
+#calc annual returns for SPXL
+SPXL_annual = annualReturn(SPXL)
+#calc cummulative returns 
+SPXL_annual$Cumulative = cumprod(SPXL_annual$yearly.returns + 1) - 1
+
+#scatterplot
+Annual_Returns = cbind(SPY_annual$Cumulative, SPXL_annual$Cumulative)
+colnames(Annual_Returns) = c("SPY", "SPXL")
+Annual_Returns_Plot = ggplot(data = Annual_Returns, aes(SPY, SPXL))+geom_point()
+
+# #Full Model
+# mod2 = lm(data = Annual_Returns, formula = SPXL ~ SPY + I(SPY^2))
+# (smod2 = summary(mod2))
+# paste("AIC =", AIC(mod2))
+# paste("BIC =", BIC(mod2))
+
+#Linear Only
+mod3 = lm(data = Annual_Returns, formula = SPXL ~ SPY)
+
+#paste("AIC =", AIC(mod3))
+#paste("BIC =", BIC(mod3))
+
+b1_2 = mod3$coefficients[1]
+b2_2 = mod3$coefficients[2]
+
+Annual_Returns_Plot + geom_abline(intercept = b1_2, slope = b2_2, col = "red") + ggtitle("Fig. 8: Comparison of Annual Cumulative Returns")
+(smod3 = summary(mod3))
+
+# 
+# #Quadratic Only
+# mod4 = lm(data = Annual_Returns, formula = SPXL ~ I(SPY^2))
+# (smod4 = summary(mod4))
+# paste("AIC =", AIC(mod3))
+# paste("BIC =", BIC(mod3))
+
+```
+The relationship between the two ETFs's annual cumulative returns appears to be linear. Both coefficients are significant.  
+
+```{r, echo = F}
+#weekly 
+annual_Returns = cbind(annualReturn(SPY), annualReturn(SPXL)) 
+colnames(annual_Returns) = c("SPY", "SPXL")
+
+#scatterplot 
+annual_Returns_Plot = ggplot(data = annual_Returns, aes(SPY, SPXL)) + geom_point()
+
+#regression 
+annualmod = lm(data = annual_Returns, formula = SPXL ~ SPY)
+
+
+b1_annual = annualmod$coefficients[1]
+b2_annual = annualmod$coefficients[2]
+
+annual_Returns_Plot + geom_abline(intercept = b1_annual, slope = b2_annual, col = "red") + ggtitle("Fig. 9: Comparison of Annual Returns")
+(sannualmod = summary(annualmod))
+```
+
+
+
+# Long Term US Treasuries
+1. How close are the daily returns to 3x? 
+```{r, echo = F}
+#Get SPY data
+VGLT = getSymbols(Symbol = "VGLT", auto.assign = F, from = start, to = end)
+
+#Calc Daily Returns 
+VGLT_daily = dailyReturn(VGLT)
+
+
+#Get SPXL data
+TMF = getSymbols(Symbol = "TMF", auto.assign = F, from = start, to = end)
+
+#Calc Daily Returns 
+TMF_daily = dailyReturn(TMF)
+
+
+#Scatterplot 
+Daily_Returns_Bonds = cbind(VGLT_daily, TMF_daily)
+colnames(Daily_Returns_Bonds) = c("VGLT", "TMF")
+Daily_Returns_Plot_Bonds = ggplot(data = Daily_Returns_Bonds, aes(VGLT, TMF))+geom_point()
+
+#Regression
+mod4 = lm(data = Daily_Returns_Bonds, formula = TMF ~ VGLT)
+
+b1 = mod4$coefficients[1]
+b2 = mod4$coefficients[2]
+
+#Plot
+Daily_Returns_Plot_Bonds + geom_abline(intercept = b1, slope = b2, col = "red") + ggtitle("Fig. 10: Comparison of Daily Returns")
+(smod4 = summary(mod4))
+```
+
+```{r, echo = F}
+SE_b2 = smod4$coefficients[2,2]
+t = (b2 - 3)/SE_b2 
+df = smod4$df[2]
+p_value = 2 * pt(abs(t), df, lower.tail = F)
+
+p_intercept = smod4$coefficients[1,4]
+```
+
+Although the intercept term is not significant(p = `r p_intercept`), we are fairly confident that the true value for $\beta_2$ differs from 3 (p=`r p_value`). The true leverage value is most likely greater than 3 (t = `r t`).  
+
+2. What is the relation between the annual returns? 
+```{r, echo = F}
+#annual return comparison
+bond_annual = cbind(annualReturn(VGLT), annualReturn(TMF))
+colnames(bond_annual) = c("VGLT", "TMF")
+
+bond_annual_plot = ggplot(data = bond_annual, aes(x = VGLT, y = TMF)) + geom_point()
+
+mod5 = lm(data = bond_annual, formula = TMF ~ VGLT)
+b1 = mod5$coefficients[1]
+b2 = mod5$coefficients[2]
+
+bond_annual_plot + ggtitle("Fig. 11: Annual Return Comparison") + geom_abline(intercept = b1, slope = b2, col = "red")  
+(smod5 = summary(mod5))
+
+#cummulative return comparison 
+bond_cum = as.data.frame(apply(bond_annual, 2, FUN = function(x){cumprod(x+1)-1}))
+
+bond_cum_plot = ggplot(data = bond_cum, aes(x = VGLT, y = TMF)) + geom_point()
+
+mod6 = lm(data = bond_cum, formula = TMF ~ VGLT)
+
+b1 = mod6$coefficients[1]
+b2 = mod6$coefficients[2]
+
+bond_cum_plot + ggtitle("Fig. 12: Cumulative Annual Return Comparison") + geom_abline(intercept = b1, slope = b2, col = "red")
+(smod6 = summary(mod6))
+
+```
+
+
+# Portfolio Testings 
+```{r, echo = F}
+#10 years 
+weights = seq(from = 0, to = 1, by = .01)
+weights = cbind(weights, 1 - weights)
+
+#SPY_VGLT
+SPY_VGLT = cbind(annualReturn(SPY), annualReturn(VGLT))
+port_1 = SPY_VGLT %*% t(weights)
+port_1_plot = cbind(apply(port_1, 2, FUN = mean), apply(port_1, 2, FUN = sd), weights)
+port_1_plot = as.data.frame(port_1_plot)
+port_1_plot$sharpe = port_1_plot$V1/port_1_plot$V2
+port_1_plot$Label = "SPY_VGLT"
+colnames(port_1_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+#SPXL_TMF
+SPXL_TMF = cbind(annualReturn(SPXL), annualReturn(TMF))
+port_2 = SPXL_TMF %*% t(weights)
+port_2_plot = cbind(apply(port_2, 2, FUN = mean), apply(port_2, 2, FUN = sd), weights)
+port_2_plot = as.data.frame(port_2_plot)
+port_2_plot$sharpe = port_2_plot$V1/port_2_plot$V2
+port_2_plot$Label = "SPXL_TMF"
+colnames(port_2_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+#SPY_TMF
+SPY_TMF = cbind(annualReturn(SPY), annualReturn(TMF))
+port_3 = SPY_TMF %*% t(weights)
+port_3_plot = cbind(apply(port_3, 2, FUN = mean), apply(port_3, 2, FUN = sd), weights)
+port_3_plot = as.data.frame(port_3_plot)
+port_3_plot$sharpe = port_3_plot$V1/port_3_plot$V2
+port_3_plot$Label = "SPY_TMF"
+colnames(port_3_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+#SPXL_VGLT
+SPXL_VGLT = cbind(annualReturn(SPXL), annualReturn(VGLT))
+port_4 = SPXL_VGLT %*% t(weights)
+port_4_plot = cbind(apply(port_4, 2, FUN = mean), apply(port_4, 2, FUN = sd), weights)
+port_4_plot = as.data.frame(port_4_plot)
+port_4_plot$sharpe = port_4_plot$V1/port_4_plot$V2
+port_4_plot$Label = "SPXL_VGLT"
+colnames(port_4_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+EF = rbind(port_1_plot, port_2_plot, port_3_plot, port_4_plot)
+
+EF_plot = ggplot(data = EF, aes(x = Sigma, y = `E[R]`, col = `Asset Mix`)) + geom_point()
+EF_plot = EF_plot + ggtitle("Fig. 13: Last 10 Years Efficiency Frontiers") 
+EF_plot + geom_abline(slope = max(EF$Sharpe))
+
+kable(EF %>% group_by(`Asset Mix`) %>% filter(`Sharpe` == max(`Sharpe`))) 
+
+```
+
+```{r, echo = F}
+#5 Year
+
+SPY = SPY["2015/"]
+SPXL = SPXL["2015/"]
+VGLT = VGLT["2015/"]
+TMF = TMF["2015/"]
+
+#SPY_VGLT
+SPY_VGLT = cbind(annualReturn(SPY), annualReturn(VGLT))
+port_1 = SPY_VGLT %*% t(weights)
+port_1_plot = cbind(apply(port_1, 2, FUN = mean), apply(port_1, 2, FUN = sd), weights)
+port_1_plot = as.data.frame(port_1_plot)
+port_1_plot$sharpe = port_1_plot$V1/port_1_plot$V2
+port_1_plot$Label = "SPY_VGLT"
+colnames(port_1_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+#SPXL_TMF
+SPXL_TMF = cbind(annualReturn(SPXL), annualReturn(TMF))
+port_2 = SPXL_TMF %*% t(weights)
+port_2_plot = cbind(apply(port_2, 2, FUN = mean), apply(port_2, 2, FUN = sd), weights)
+port_2_plot = as.data.frame(port_2_plot)
+port_2_plot$sharpe = port_2_plot$V1/port_2_plot$V2
+port_2_plot$Label = "SPXL_TMF"
+colnames(port_2_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+#SPY_TMF
+SPY_TMF = cbind(annualReturn(SPY), annualReturn(TMF))
+port_3 = SPY_TMF %*% t(weights)
+port_3_plot = cbind(apply(port_3, 2, FUN = mean), apply(port_3, 2, FUN = sd), weights)
+port_3_plot = as.data.frame(port_3_plot)
+port_3_plot$sharpe = port_3_plot$V1/port_3_plot$V2
+port_3_plot$Label = "SPY_TMF"
+colnames(port_3_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+#SPXL_VGLT
+SPXL_VGLT = cbind(annualReturn(SPXL), annualReturn(VGLT))
+port_4 = SPXL_VGLT %*% t(weights)
+port_4_plot = cbind(apply(port_4, 2, FUN = mean), apply(port_4, 2, FUN = sd), weights)
+port_4_plot = as.data.frame(port_4_plot)
+port_4_plot$sharpe = port_4_plot$V1/port_4_plot$V2
+port_4_plot$Label = "SPXL_VGLT"
+colnames(port_4_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+EF = rbind(port_1_plot, port_2_plot, port_3_plot, port_4_plot)
+
+EF_plot = ggplot(data = EF, aes(x = Sigma, y = `E[R]`, col = `Asset Mix`)) + geom_point()
+EF_plot = EF_plot + ggtitle("Fig. 14: Last 5 Years Efficiency Frontiers") 
+EF_plot + geom_abline(slope = max(EF$Sharpe))
+
+kable(EF %>% group_by(`Asset Mix`) %>% filter(`Sharpe` == max(`Sharpe`)))
+```
+
+```{r, echo = F}
+SPY = SPY["2017/"]
+SPXL = SPXL["2017/"]
+VGLT = VGLT["2017/"]
+TMF = TMF["2017/"]
+
+#SPY_VGLT
+SPY_VGLT = cbind(annualReturn(SPY), annualReturn(VGLT))
+port_1 = SPY_VGLT %*% t(weights)
+port_1_plot = cbind(apply(port_1, 2, FUN = mean), apply(port_1, 2, FUN = sd), weights)
+port_1_plot = as.data.frame(port_1_plot)
+port_1_plot$sharpe = port_1_plot$V1/port_1_plot$V2
+port_1_plot$Label = "SPY_VGLT"
+colnames(port_1_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+#SPXL_TMF
+SPXL_TMF = cbind(annualReturn(SPXL), annualReturn(TMF))
+port_2 = SPXL_TMF %*% t(weights)
+port_2_plot = cbind(apply(port_2, 2, FUN = mean), apply(port_2, 2, FUN = sd), weights)
+port_2_plot = as.data.frame(port_2_plot)
+port_2_plot$sharpe = port_2_plot$V1/port_2_plot$V2
+port_2_plot$Label = "SPXL_TMF"
+colnames(port_2_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+#SPY_TMF
+SPY_TMF = cbind(annualReturn(SPY), annualReturn(TMF))
+port_3 = SPY_TMF %*% t(weights)
+port_3_plot = cbind(apply(port_3, 2, FUN = mean), apply(port_3, 2, FUN = sd), weights)
+port_3_plot = as.data.frame(port_3_plot)
+port_3_plot$sharpe = port_3_plot$V1/port_3_plot$V2
+port_3_plot$Label = "SPY_TMF"
+colnames(port_3_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+#SPXL_VGLT
+SPXL_VGLT = cbind(annualReturn(SPXL), annualReturn(VGLT))
+port_4 = SPXL_VGLT %*% t(weights)
+port_4_plot = cbind(apply(port_4, 2, FUN = mean), apply(port_4, 2, FUN = sd), weights)
+port_4_plot = as.data.frame(port_4_plot)
+port_4_plot$sharpe = port_4_plot$V1/port_4_plot$V2
+port_4_plot$Label = "SPXL_VGLT"
+colnames(port_4_plot) = c("E[R]", "Sigma", "W1", "W2", "Sharpe", "Asset Mix")
+
+EF = rbind(port_1_plot, port_2_plot, port_3_plot, port_4_plot)
+
+EF_plot = ggplot(data = EF, aes(x = Sigma, y = `E[R]`, col = `Asset Mix`)) + geom_point()
+EF_plot = EF_plot + ggtitle("Fig. 15: Last 3 Years Efficiency Frontiers") 
+EF_plot + geom_abline(slope = max(EF$Sharpe))
+
+kable(EF %>% group_by(`Asset Mix`) %>% filter(`Sharpe` == max(`Sharpe`))) 
+```
+

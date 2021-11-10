@@ -1,0 +1,655 @@
+---
+title: "An Analysis of Market ETFs"
+author: "Art Tay"
+date: "12/17/2020"
+output: html_document
+---
+
+```{r, include=F}
+# VTI = getSymbols(Symbols = "VTI", src = "yahoo", from = start, to = end, auto.assign = F)
+# VTI = to.quarterly(VTI)
+# #chartSeries(VTI)
+# 
+# VTI_Q = as.data.frame(quarterlyReturn(VTI))
+# VTI_Q = VTI_Q %>% 
+#   mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+#   mutate("Gross Returns" = quarterly.returns + 1) %>% 
+#   mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+#   mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+#   mutate("Time" = index(VTI))
+# 
+# VTI_mean = mean(VTI_Q$`Quarterly Return Percent`)
+# VTI_media = median(VTI_Q$`Quarterly Return Percent`)
+# VTI_sd = sd(VTI_Q$`Quarterly Return Percent`)
+# VTI_cum = last(VTI_Q$`Cum. Return Percent`)
+# 
+# VTI_plot_cum = ggplot(data = VTI_Q, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line()
+# VTI_plot_cum + ggtitle("VTI Cummulative Returns") + ylab("Cummulative Percent Returns")
+# 
+# VTI_boxplot = ggplot(data = VTI_Q, aes(x = `Quarterly Return Percent`)) + geom_boxplot() 
+# VTI_boxplot + ggtitle("VTI Quarterly Return BoxPlot")
+
+```
+
+```{r, include=F}
+library(tidyverse)
+library(quantmod)
+
+start = "2015-1-1"
+end = "2020-12-17"
+
+```
+
+# Equities
+
+## US Indexes 
+## Total Stock Market
+```{r, echo=F}
+name = "VTI"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+
+## S&P 500 
+```{r, echo=F}
+name = "SPY"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+## Dow Jones
+```{r, echo=F}
+name = "DIA"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+## Nasdaq
+```{r, echo=F}
+name = "QQQ"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+
+## Emerging Market Stocks
+```{r, echo=F}
+name = "VWO"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+## International Market Stocks
+```{r, echo=F}
+name = "VXUS"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+## European
+```{r, echo=F}
+name = "VGK"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+
+## Asia
+# Japan
+```{r}
+name = "JPXN"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+# Chinese Tech 
+```{r}
+name = "CQQQ"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+
+# Fix Income 
+## US Gov
+### Inflation Protected
+```{r}
+name = "VTIP"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+### Long Term Treasuries
+```{r}
+name = "VUSTX"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+## US Corporate
+```{r}
+name = "LQD"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+## Real Estate
+### REIT
+```{r}
+name = "VNQ"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+### MBS
+```{r}
+name = "VMBS"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+## Emerging Market Bonds
+```{r}
+name = "VWOB"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+# Commodities
+## Gold 
+```{r}
+name = "GLD"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+## Agriculture
+```{r}
+name = "DBA"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+## Energy 
+```{r}
+name = "DBE"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+## Clean Energy
+```{r}
+name = "ICLN"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+## Diversified
+```{r}
+name = "PDBC"
+
+xts = to.quarterly(getSymbols(Symbols = name, src = "yahoo", from = start, to = end, auto.assign = F))
+
+x = assign(paste(name, "_Q", sep = ""), as.data.frame(quarterlyReturn(xts)) %>% 
+  mutate("Quarterly Return Percent" = quarterly.returns * 100) %>% 
+  mutate("Gross Returns" = quarterly.returns + 1) %>% 
+  mutate("Cum. Returns" = cumprod(`Gross Returns`)) %>% 
+  mutate("Cum. Return Percent" = (`Cum. Returns`- 1) * 100) %>%  
+  mutate("Time" = index(xts))) 
+
+assign(paste(name, "median", sep="_"), median(x$`Quarterly Return Percent`))
+assign(paste(name, "mean", sep="_"), mean(x$`Quarterly Return Percent`))
+assign(paste(name, "sd", sep="_"), sd(x$`Quarterly Return Percent`))
+assign(paste(name, "cum.", sep="_"), last(x$`Cum. Return Percent`))
+
+ggplot(data = x, aes(x = Time, y = `Cum. Return Percent`)) + geom_point() + geom_line() + ggtitle(paste(name, "Cummulative Returns")) + ylab("Cummulative Percent Returns")
+
+ggplot(data = x, aes(x = `Quarterly Return Percent`)) + geom_boxplot() + ggtitle(paste(name, "Quarterly Return BoxPlot"))
+```
+
+# Comparing Risk and Return
+```{r, echo=F}
+
+tickers = c("VTI", "SPY", "DIA", "QQQ", "VWO", "VXUS", "VGK", "JPXN", "CQQQ", "VTIP", "VUSTX", "LQD", "VNQ", "VMBS", 
+            "VWOB", "GLD", "DBA", "DBE", "PDBC", "ICLN")
+
+ret.df = cbind(VTI_Q$`Quarterly Return Percent`,SPY_Q$`Quarterly Return Percent`,DIA_Q$`Quarterly Return Percent`,
+               QQQ_Q$`Quarterly Return Percent`, VWO_Q$`Quarterly Return Percent`, VXUS_Q$`Quarterly Return Percent`,
+               VGK_Q$`Quarterly Return Percent`, JPXN_Q$`Quarterly Return Percent`, CQQQ_Q$`Quarterly Return Percent`,
+               VTIP_Q$`Quarterly Return Percent`, VUSTX_Q$`Quarterly Return Percent`, LQD_Q$`Quarterly Return Percent`,
+               VNQ_Q$`Quarterly Return Percent`, VMBS_Q$`Quarterly Return Percent`, VWOB_Q$`Quarterly Return Percent`,
+               GLD_Q$`Quarterly Return Percent`, DBA_Q$`Quarterly Return Percent`, DBE_Q$`Quarterly Return Percent`, 
+               PDBC_Q$`Quarterly Return Percent`, ICLN_Q$`Quarterly Return Percent`)
+
+colnames(ret.df) = tickers
+
+```
+
+## Plots
+```{r}
+ret.df = as.data.frame(ret.df)
+plotting = ret.df %>% gather(key = "Ticker", value = "Percent Returns")
+plotting$Ticker=as.factor(plotting$Ticker)
+
+ggplot(data = plotting, aes(x = Ticker, y = `Percent Returns`, col = Ticker)) + geom_violin() + 
+  ggtitle("Quarterly Return Violin Plot")
+ggplot(data = plotting, aes(x = Ticker, y = `Percent Returns`)) + geom_boxplot() + 
+  ggtitle("Quarterly Return Boxplot")
+```
+
+
+## Corvariance Matrix
+```{r}
+library(corrplot)
+(ret_cov = cov(ret.df))
+(ret_cor = cor(ret.df))
+(ret_corplot = corrplot(ret_cor, method = "ellipse"))
+```
+
+## Min-Var Portfolio
+```{r}
+
+
+#generate random portfolio weights 
+rand_weight = data.frame()
+
+for(i in 1:1000){
+  r_vec = runif(20)
+  norm = sum(r_vec)
+  r_vec = r_vec / norm 
+  rand_weight = rbind(rand_weight, r_vec)
+}
+
+```
+
+```{r}
+#create a cum. return vector 
+
+#tickers = c("VTI", "SPY", "DIA", "QQQ", "VWO", "VXUS", "VGK", "JPXN", "CQQQ", "VTIP", "VUSTX", "LQD", "VNQ", "VMBS", 
+#            "VWOB", "GLD", "DBA", "DBE", "PDBC", "ICLN")
+
+
+cum_ret_vec = cbind(VTI_cum., SPY_cum., DIA_cum., QQQ_cum., VWO_cum., VXUS_cum., VGK_cum., JPXN_cum., 
+                    CQQQ_cum., VTIP_cum., VUSTX_cum., LQD_cum., VNQ_cum., VMBS_cum., VWOB_cum., GLD_cum., 
+                    DBA_cum., DBE_cum., PDBC_cum., ICLN_cum.)
+```
+
+```{r}
+
+df = data.frame()
+
+for(i in 1:nrow(rand_weight)){
+  
+  row = as.matrix(rand_weight[i,])
+  ret = row %*% t(cum_ret_vec)
+  var = row %*% ret_cov %*% t(row)
+  row = append(row, ret)
+  row = append(row, var)
+  df = rbind(df, row)
+  
+}
+
+```
+
+```{r}
+
+colnames(df) = c("VTI", "SPY", "DIA", "QQQ", "VWO", "VXUS", "VGK", "JPXN", "CQQQ", "VTIP", "VUSTX", "LQD", "VNQ", "VMBS",
+                 "VWOB", "GLD", "DBA", "DBE", "PDBC", "ICLN", "R_p", "Var_p")
+
+df$SD = sqrt(df$Var_p)
+
+df$Sharpe = df$R_p / df$SD
+
+df[which.max(df$Sharpe),]
+
+ggplot(data = df, aes(x = SD, y = R_p)) + geom_point() 
+
+```
+
+# Portfolio Testing 
+```{r}
+port_tickers = c("VUSTX", "VMBS", "SPY", "EMB", "CQQQ", "ICLN")
+
+
+port_weights = c(.4, .1, .2, .1, .1, .1)  
+
+port_ret = data.frame()
+for(i in port_tickers){
+  rs = getSymbols(Symbols = i, src = "yahoo", auto.assign = F, from = start, to = end)
+  rs = weeklyReturn(rs)
+  port_ret = cbind(port_ret, rs)
+}
+
+colnames(port_ret) = port_tickers
+
+rets = t(port_weights) %*% t(port_ret)
+
+rets = t(rets)
+
+rets = as.data.frame(rets)
+
+rets$Gross = rets$V1 + 1
+
+port_cum = cumprod(rets$Gross)-1
+  
+port_sd = sd(rets$V1)
+
+port_sharpe = last(port_cum)/port_sd
+
+last(port_cum)
+
+```
+
+
+# Takeaways 
+1. Most market indexes return about 5-7% quarter with differing levels of volatility. 
+2. The most inversely correlated securities to the general market are Mortgage-Backed Securities and Long-Term U.S. treasures. 
+3. MBS return are historically so close to zero they are not a wrote wild investment. 
+4. Most markets move together even when factoring sector overweighting and geography. 
+
+# Next Steps
+It seems that the majority of the benefits of diversifiaction can be reaped by just investing in the S&P 500 and Long-Term U.S. treasures. Given the stability of this portfolio employing leverage should yield asymmetric upside. 
